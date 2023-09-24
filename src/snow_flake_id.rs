@@ -42,7 +42,7 @@ const MAX_TIMESTAMP: u64 = 0x03_ff_ff_ff_ff_ff;
 const MAX_MACHINE_ID: u16 = 0x03_ff;
 const MAX_INCLEMENT_ID: u16 = 0x0f_ff;
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct SnowflakeId(u64);
 
 impl From<u64> for SnowflakeId {
@@ -56,6 +56,14 @@ impl From<i64> for SnowflakeId {
 		SnowflakeId(value as u64)
 	}
 }
+
+impl Clone for SnowflakeId {
+	fn clone(&self) -> Self {
+		SnowflakeId(self.0)
+	}
+}
+
+impl Copy for SnowflakeId {}
 
 impl SnowflakeId {
 	pub fn new(timestamp: u64, machine_id: u16, inclement: u16) -> Result<Self, SnowflakeIdError> {
@@ -229,5 +237,21 @@ pub mod tests {
 	#[test]
 	fn as_i64_test() {
 		assert_eq!(fixture().as_i64(), SAMPLE_SCR as i64);
+	}
+
+	#[test]
+	fn clone_test() {
+		let fixture = fixture();
+		let cloned = fixture.clone();
+
+		assert_eq!(fixture, cloned)
+	}
+
+	#[test]
+	fn copy_test() {
+		let fixture = fixture();
+		let copied = fixture;
+
+		assert_eq!(fixture, copied)
 	}
 }
