@@ -1,6 +1,7 @@
 use crate::snow_flake_id::SnowflakeIdError::{Increment, MachineId, Timestamp};
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use std::fmt::{Debug, Display, Formatter};
+use std::hash::{Hash, Hasher};
 
 #[derive(PartialEq, Eq)]
 #[cfg_attr(test, derive(strum_macros::EnumIter))]
@@ -114,12 +115,20 @@ impl SnowflakeId {
 	}
 }
 
+impl Hash for SnowflakeId {
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		self.0.hash(state)
+	}
+}
+
 #[cfg(test)]
 pub mod tests {
 	use crate::snow_flake_id::SnowflakeIdError::Timestamp;
 	use crate::snow_flake_id::{
 		SnowflakeId, SnowflakeIdError, MAX_INCLEMENT_ID, MAX_MACHINE_ID, MAX_TIMESTAMP,
 	};
+	use std::collections::hash_map::DefaultHasher;
+	use std::hash::{Hash, Hasher};
 
 	use chrono::{DateTime, Duration, TimeZone, Utc};
 	use std::sync::LazyLock;
@@ -253,5 +262,23 @@ pub mod tests {
 		let copied = fixture;
 
 		assert_eq!(fixture, copied)
+	}
+
+	#[test]
+	fn hash_test() {
+		let a = SnowflakeId::from(666324u64);
+		let b = SnowflakeId::from(666324u64);
+
+		let mut ha = DefaultHasher::new();
+		let mut hb = DefaultHasher::new();
+
+		a.hash(&mut ha);
+		b.hash(&mut hb);
+
+		assert_eq!(ha.finish(), hb.finish());
+
+		let mut hb = DefaultHasher::new();
+		SnowflakeId::from(52u64).hash(&mut hb);
+		assert_ne!(ha.finish(), hb.finish());
 	}
 }
