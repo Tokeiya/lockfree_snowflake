@@ -12,13 +12,11 @@ pub enum SnowflakeIdError {
 }
 
 impl SnowflakeIdError {
-    #[allow(unreachable_patterns)]
     fn format(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let str = match self {
             Timestamp => "SnowflakeIdError::Timestamp",
             MachineId => "SnowflakeIdError::MachineId",
             Increment => "SnowflakeIdError::Increment",
-            _ => unreachable!(),
         };
 
         write!(f, "{}", str)
@@ -60,7 +58,7 @@ impl From<i64> for SnowflakeId {
 
 impl Clone for SnowflakeId {
     fn clone(&self) -> Self {
-        SnowflakeId(self.0)
+        *self
     }
 }
 
@@ -69,7 +67,7 @@ impl Copy for SnowflakeId {}
 impl SnowflakeId {
     pub fn new(timestamp: u64, machine_id: u16, inclement: u16) -> Result<Self, SnowflakeIdError> {
         if timestamp > MAX_TIMESTAMP {
-            return Err(Timestamp);
+            Err(Timestamp)
         } else if machine_id > MAX_MACHINE_ID {
             return Err(MachineId);
         } else if inclement > MAX_INCLEMENT_ID {
